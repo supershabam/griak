@@ -57,6 +57,45 @@ func (c Conn) ReadMap(types, buckets, datatypes string) (map[string]string, erro
 	return result, nil
 }
 
+func (c Conn) WriteMap(types, buckets, datatypes string, m map[string]string) error {
+	updates := []*riak.MapUpdate{}
+	for k, v := range m {
+		t := new(riak.MapField_MapFieldType)
+		*t = riak.MapField_REGISTER
+		update := &riak.MapUpdate{
+			Field: &riak.MapField{
+				Name: []byte(k),
+				Type: t,
+			},
+			RegisterOp: []byte(v),
+		}
+		updates = append(updates, update)
+	}
+	req := &riak.DtUpdateReq{
+		Type:   []byte(types),
+		Bucket: []byte(buckets),
+		Key:    []byte(datatypes),
+		Op: &riak.DtOp{
+			MapOp: &riak.MapOp{
+				Updates: updates,
+			},
+		},
+	}
+	data, err := proto.Marshal(req)
+	if err != nil {
+		return err
+	}
+	err = c.Write(82, data)
+	if err != nil {
+		return err
+	}
+	_, _, err = c.Read()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c Conn) Read() (code byte, data []byte, err error) {
 	// Read message with header: <length:32> <msg_code:8> <pbmsg>
 	lenbuf := make([]byte, 4)

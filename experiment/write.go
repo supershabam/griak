@@ -15,7 +15,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	m, err := conn.ReadMap("metricgroup", "stats.droplet.1234.cpu", "1409230800000")
+	err = conn.WriteMap("metricgroup", "bukit", "key", map[string]string{
+		"omg": "lolerskates",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m, err := conn.ReadMap("metricgroup", "bukit", "key")
 	if err != nil {
 		log.Fatal(err)
 	}
