@@ -19,7 +19,7 @@ func main() {
 	}
 
 	// make request payload
-	req := &riak.RpbGetReq{
+	req := &riak.DtFetchReq{
 		Bucket: []byte("stats.droplet.1234.cpu"),
 		Key:    []byte("1409230800000"),
 		Type:   []byte("metricgroup"),
@@ -30,7 +30,7 @@ func main() {
 	}
 
 	// write request
-	var code byte = 9
+	var code byte = 80
 	err = conn.Write(code, data)
 	if err != nil {
 		log.Fatal(err)
@@ -41,10 +41,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if code != 10 {
+	if code != 81 {
 		log.Fatalf("expected message code 10 not %d", code)
 	}
-	resp := &riak.RpbGetResp{}
+	resp := &riak.DtFetchResp{}
 	err = proto.Unmarshal(data, resp)
 	if err != nil {
 		log.Fatal(err)
