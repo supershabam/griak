@@ -89,9 +89,12 @@ func (c Conn) WriteMap(types, buckets, datatypes string, m map[string]string) er
 	if err != nil {
 		return err
 	}
-	_, _, err = c.Read()
+	code, _, err := c.Read()
 	if err != nil {
 		return err
+	}
+	if code != 83 {
+		return fmt.Errorf("expected code 83 not: %d", code)
 	}
 	return nil
 }
