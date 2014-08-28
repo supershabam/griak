@@ -27,28 +27,33 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Build message with header: <length:32> <msg_code:8> <pbmsg>
-	// i := int32(len(pbmsg) + 1)
-	// msgbuf := []byte{byte(i >> 24), byte(i >> 16), byte(i >> 8), byte(i), code}
-	// msgbuf = append(msgbuf, pbmsg...)
-
-	var code byte
-	code = 19
-	i := int32(len(data) + 1)
-	msgbuf := []byte{byte(i >> 24), byte(i >> 16), byte(i >> 8), byte(i), code}
-	msgbuf = append(msgbuf, data...)
-
-	n, err := conn.Write(msgbuf)
+	err = WriteRiak(conn, 19, data)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("wrote %d bytes", n)
-	code, data, err = ReadRiak(conn)
+	code, data, err := ReadRiak(conn)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("code: %d", code)
 	log.Printf("data: %s", data)
+}
+
+func WriteRiak(w io.Writer, code byte, data []byte) error {
+	// Build message with header: <length:32> <msg_code:8> <pbmsg>
+	var length int32 = int32(len(data) + 1)
+	lenbuf := []byte{
+		byte(length >> 24),
+		byte(length >> 16),
+		byte(length >> 8),
+		byte(length),
+	}
+	buf := []byte{}
+	buf = append(buf, lenbuf...)
+	buf = append(buf, code)
+	buf = append(buf, data...)
+	_, err := w.Write(buf)
+	return err
 }
 
 func ReadRiak(r io.Reader) (code byte, data []byte, err error) {
