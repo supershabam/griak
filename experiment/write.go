@@ -13,7 +13,6 @@ import (
 const RiakAddr = "104.131.63.89:8087"
 
 func main() {
-	log.Print("HI")
 	req := &riak.RpbGetBucketReq{
 		Bucket: []byte("stats.droplet.1234.cpu"),
 		Type:   []byte("metricgroup"),
@@ -31,12 +30,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	code, data, err := ReadRiak(conn)
+	_, data, err = ReadRiak(conn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("code: %d", code)
-	log.Printf("data: %s", data)
+	resp := &riak.RpbGetBucketResp{}
+	err = proto.Unmarshal(data, resp)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%+v", resp)
+
 }
 
 func WriteRiak(w io.Writer, code byte, data []byte) error {
@@ -57,6 +61,7 @@ func WriteRiak(w io.Writer, code byte, data []byte) error {
 }
 
 func ReadRiak(r io.Reader) (code byte, data []byte, err error) {
+	// Read message with header: <length:32> <msg_code:8> <pbmsg>
 	lenbuf := make([]byte, 4)
 	codebuf := make([]byte, 1)
 	_, err = io.ReadFull(r, lenbuf)
@@ -72,7 +77,6 @@ func ReadRiak(r io.Reader) (code byte, data []byte, err error) {
 		int(lenbuf[1])<<16 +
 		int(lenbuf[2])<<8 +
 		int(lenbuf[3]) - 1
-	log.Printf("reading %d", length)
 	data = make([]byte, length)
 	_, err = io.ReadFull(r, data)
 	return
