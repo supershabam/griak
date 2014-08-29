@@ -15,7 +15,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = conn.WriteMap("metricgroup", "bukit", "key", map[string]string{
+	err = conn.WriteMap("metricgroup", "l.jl.bukit", "key", map[string]string{
 		"omg":         "lolerskates",
 		"another key": "rewrite",
 	})
